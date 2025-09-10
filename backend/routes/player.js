@@ -5,6 +5,20 @@ const { authenticateToken, authorizeRoles } = require('../middleware/authMiddlew
 
 const router = express.Router();
 
+// Search players
+router.get('/search', authenticateToken, async (req, res) => {
+  try {
+    const { q: query } = req.query;
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ message: 'Search query must be at least 2 characters long' });
+    }
+    const players = await Player.search(query);
+    res.json(players);
+  } catch (err) {
+    res.status(500).json({ message: 'Error searching players', error: err.message });
+  }
+});
+
 // Get all players
 router.get('/', authenticateToken, async (req, res) => {
   try {

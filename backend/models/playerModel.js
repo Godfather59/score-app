@@ -29,6 +29,17 @@ const Player = {
 
   async delete(id) {
     await pool.query('DELETE FROM players WHERE id = $1', [id]);
+  },
+
+  async search(query) {
+    const result = await pool.query(
+      `SELECT p.id, p.name, t.name as team_name 
+       FROM players p
+       LEFT JOIN teams t ON p.team_id = t.id
+       WHERE LOWER(p.name) LIKE $1`,
+      [`%${query.toLowerCase()}%`]
+    );
+    return result.rows;
   }
 };
 

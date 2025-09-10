@@ -13,9 +13,7 @@ const Match = {
     const result = await pool.query(
       `SELECT m.*, 
         ht.name AS home_team_name, 
-        ht.logo AS home_team_logo,
-        at.name AS away_team_name,
-        at.logo AS away_team_logo
+        at.name AS away_team_name
       FROM matches m
       JOIN teams ht ON m.home_team_id = ht.id
       JOIN teams at ON m.away_team_id = at.id`
@@ -27,9 +25,7 @@ const Match = {
     const result = await pool.query(
       `SELECT m.*, 
         ht.name AS home_team_name, 
-        ht.logo AS home_team_logo,
-        at.name AS away_team_name,
-        at.logo AS away_team_logo
+        at.name AS away_team_name
       FROM matches m
       JOIN teams ht ON m.home_team_id = ht.id
       JOIN teams at ON m.away_team_id = at.id

@@ -30,6 +30,20 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Search teams
+router.get('/search', authenticateToken, async (req, res) => {
+  try {
+    const { q: query } = req.query;
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ message: 'Search query must be at least 2 characters long' });
+    }
+    const teams = await Team.search(query);
+    res.json(teams);
+  } catch (err) {
+    res.status(500).json({ message: 'Error searching teams', error: err.message });
+  }
+});
+
 // Get team by id
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
