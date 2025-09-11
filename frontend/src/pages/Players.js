@@ -7,6 +7,16 @@ const Players = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    position: '',
+    team: '',
+    minAge: '',
+    maxAge: ''
+  });
+  
+  // Extract unique positions and teams for dropdowns
+  const positions = [...new Set(players.map(player => player.position).filter(Boolean))].sort();
+  const teams = [...new Set(players.map(player => player.team).filter(Boolean))].sort();
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -26,11 +36,30 @@ const Players = () => {
     fetchPlayers();
   }, []);
 
-  const filteredPlayers = players.filter(player =>
-    player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.team?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.position?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPlayers = players.filter(player => {
+    // Search term filter
+    const matchesSearch = searchTerm === '' || 
+      player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (player.team && player.team.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (player.position && player.position.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Position filter
+    const matchesPosition = !filters.position || player.position === filters.position;
+    
+    // Team filter
+    const matchesTeam = !filters.team || player.team === filters.team;
+    
+    // Age filter
+    const currentYear = new Date().getFullYear();
+    const playerAge = player.birth_date 
+      ? currentYear - new Date(player.birth_date).getFullYear() 
+      : null;
+      
+    const matchesMinAge = !filters.minAge || (playerAge && playerAge >= parseInt(filters.minAge));
+    const matchesMaxAge = !filters.maxAge || (playerAge && playerAge <= parseInt(filters.maxAge));
+    
+    return matchesSearch && matchesPosition && matchesTeam && matchesMinAge && matchesMaxAge;
+  });
 
   if (loading) {
     return (
@@ -74,12 +103,13 @@ const Players = () => {
             <h1 className="text-2xl font-bold text-gray-900">Players</h1>
             <p className="mt-1 text-sm text-gray-500">Browse through all players.</p>
             
+            {/* Search Bar */}
             <div className="mt-4">
-              <div className="relative rounded-md shadow-sm max-w-md">
+              <div className="relative rounded-md shadow-sm max-w-md mb-4">
                 <input
                   type="text"
                   className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-4 pr-12 sm:text-sm border-gray-300 rounded-md h-10"
-                  placeholder="Search players..."
+                  placeholder="Search players by name, team, or position..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -89,29 +119,122 @@ const Players = () => {
                   </svg>
                 </div>
               </div>
+              
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                {/* Position Filter */}
+                <div>
+                  <label htmlFor="position" className="block text-sm font-medium text-gray-700">Position</label>
+                  <select
+                    id="position"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    value={filters.position}
+                    onChange={(e) => setFilters({...filters, position: e.target.value})}
+                  >
+                    <option value="">All Positions</option>
+                    {positions.map((pos) => (
+                      <option key={pos} value={pos}>{pos}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Team Filter */}
+                <div>
+                  <label htmlFor="team" className="block text-sm font-medium text-gray-700">Team</label>
+                  <select
+                    id="team"
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                    value={filters.team}
+                    onChange={(e) => setFilters({...filters, team: e.target.value})}
+                  >
+                    <option value="">All Teams</option>
+                    {teams.map((team) => (
+                      <option key={team} value={team}>{team}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Age Range */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label htmlFor="minAge" className="block text-sm font-medium text-gray-700">Min Age</label>
+                    <input
+                      type="number"
+                      id="minAge"
+                      min="16"
+                      max="50"
+                      className="mt-1 block w-full pl-3 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="Min"
+                      value={filters.minAge}
+                      onChange={(e) => setFilters({...filters, minAge: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="maxAge" className="block text-sm font-medium text-gray-700">Max Age</label>
+                    <input
+                      type="number"
+                      id="maxAge"
+                      min="16"
+                      max="50"
+                      className="mt-1 block w-full pl-3 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      placeholder="Max"
+                      value={filters.maxAge}
+                      onChange={(e) => setFilters({...filters, maxAge: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                {/* Reset Button */}
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 h-10"
+                    onClick={() => {
+                      setFilters({
+                        position: '',
+                        team: '',
+                        minAge: '',
+                        maxAge: ''
+                      });
+                      setSearchTerm('');
+                    }}
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
-              {filteredPlayers.length > 0 ? (
-                filteredPlayers.map((player) => (
-                  <li key={player.id}>
+            {filteredPlayers.length > 0 ? (
+              <ul className="divide-y divide-gray-200">
+                {filteredPlayers.map((player) => (
+                  <li key={player.id} className="hover:bg-gray-50">
                     <div className="px-4 py-4 sm:px-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                            {player.photo ? (
-                              <img className="h-10 w-10 rounded-full" src={player.photo} alt={player.name} />
-                            ) : (
-                              <span className="text-gray-400">{player.name.charAt(0)}</span>
-                            )}
-                          </div>
+                          {player.photo && (
+                            <img
+                              className="h-12 w-12 rounded-full"
+                              src={player.photo}
+                              alt={player.name}
+                            />
+                          )}
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-indigo-600">{player.name}</div>
-                            <div className="text-sm text-gray-500">
-                              {player.position} • {player.team}
-                            </div>
+                            <a 
+                              href={`/players/${player.id}`}
+                              className="text-lg leading-6 font-medium text-indigo-600 hover:text-indigo-800 hover:underline"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.location.href = `/players/${player.id}`;
+                              }}
+                            >
+                              {player.name}
+                            </a>
+                            <p className="mt-1 text-sm text-gray-500">
+                              {player.team} • {player.position}
+                            </p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -125,13 +248,13 @@ const Players = () => {
                       </div>
                     </div>
                   </li>
-                ))
-              ) : (
-                <div className="px-4 py-12 text-center text-gray-500">
-                  No players found matching your search.
-                </div>
-              )}
-            </ul>
+                ))}
+              </ul>
+            ) : (
+              <div className="px-4 py-12 text-center text-gray-500">
+                No players found matching your search.
+              </div>
+            )}
           </div>
         </div>
       </main>

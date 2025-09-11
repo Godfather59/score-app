@@ -30,7 +30,9 @@ const Search = () => {
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  const handleResultClick = (type, id) => {
+  const handleResultClick = (type, id, e) => {
+    e.preventDefault();
+    e.stopPropagation();
     navigate(`/${type}/${id}`);
     setQuery('');
     setIsOpen(false);
@@ -64,13 +66,14 @@ const Search = () => {
               </div>
             )}
             {results.teams.map((team) => (
-              <div
+              <a
                 key={`team-${team.id}`}
-                className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-                onMouseDown={() => handleResultClick('teams', team.id)}
+                href={`/teams/${team.id}`}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onMouseDown={(e) => handleResultClick('teams', team.id, e)}
               >
                 {team.name}
-              </div>
+              </a>
             ))}
             
             {results.players.length > 0 && (
@@ -79,10 +82,11 @@ const Search = () => {
               </div>
             )}
             {results.players.map((player) => (
-              <div
+              <a
                 key={`player-${player.id}`}
-                className="px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100"
-                onMouseDown={() => handleResultClick('players', player.id)}
+                href={`/players/${player.id}`}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onMouseDown={(e) => handleResultClick('players', player.id, e)}
               >
                 {player.name}
                 {player.team_name && (
@@ -90,7 +94,7 @@ const Search = () => {
                     ({player.team_name})
                   </span>
                 )}
-              </div>
+              </a>
             ))}
           </div>
         </div>

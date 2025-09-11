@@ -3,26 +3,64 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/userModel');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
+// Apply rate limiting to all auth routes
+router.use(authLimiter);
+
 // Register
 router.post('/register', [
-  body('username').isLength({ min: 3 }),
-  body('email').isEmail(),
-  body('password').isLength({ min: 6 }),
-  body('role').isIn(['admin', 'editor', 'user'])
+  body('username').isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
+  body('email').isEmail().withMessage('Please provide a valid email'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { username, email, password, role } = req.body;
+  const { username, email, password } = req.body;
+  
   try {
+    // Check if user already exists
+    const existingUser = await User.findByUsername(username);
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+    
+    // Check if email already exists
+    const existingEmail = await User.findByEmail(email);
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+    
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ username, email, password: hashedPassword, role });
-    res.status(201).json({ message: 'User created', user: { id: user.user_id, username: user.username, email: user.email, role: user.role } });
+    const user = await User.create({ 
+      username, 
+      email, 
+      password: hashedPassword, 
+      role: 'user' // Default role for new users
+    });
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.user_id, username: user.username, role: user.role }, 
+      process.env.JWT_SECRET || 'secretkey', 
+      { expiresIn: '24h' }
+    );
+    
+    res.status(201).json({ 
+      message: 'User created successfully', 
+      token,
+      user: { 
+        id: user.user_id, 
+        username: user.username, 
+        email: user.email, 
+        role: user.role 
+      } 
+    });
   } catch (err) {
     res.status(500).json({ message: 'Error creating user', error: err.message });
   }

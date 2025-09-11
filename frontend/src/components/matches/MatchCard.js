@@ -12,7 +12,9 @@ const MatchCard = ({ match }) => {
     status, 
     date, 
     time, 
-    league: competition 
+    league: competition,
+    home_team_id: homeTeamId,
+    away_team_id: awayTeamId
   } = match;
   
   const getStatusBadge = () => {
@@ -47,7 +49,13 @@ const MatchCard = ({ match }) => {
           <div className="flex-1">
             <div className="flex items-center">
               <div className="w-6 h-6 bg-gray-200 rounded-full mr-2"></div>
-              <span className="text-sm font-medium">{homeTeam || 'Home Team'}</span>
+              <Link 
+                to={`/teams/${homeTeamId}`}
+                className="text-sm font-medium hover:text-indigo-600 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {homeTeam || 'Home Team'}
+              </Link>
             </div>
           </div>
           <div className="w-16 text-center font-bold">
@@ -57,7 +65,13 @@ const MatchCard = ({ match }) => {
           </div>
           <div className="flex-1 text-right">
             <div className="flex items-center justify-end">
-              <span className="text-sm font-medium">{awayTeam || 'Away Team'}</span>
+              <Link 
+                to={`/teams/${awayTeamId}`}
+                className="text-sm font-medium hover:text-indigo-600 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {awayTeam || 'Away Team'}
+              </Link>
               <div className="w-6 h-6 bg-gray-200 rounded-full ml-2"></div>
             </div>
           </div>
@@ -77,7 +91,9 @@ MatchCard.propTypes = {
   match: PropTypes.shape({
     id: PropTypes.number.isRequired,
     home_team_name: PropTypes.string,
+    home_team_id: PropTypes.number,
     away_team_name: PropTypes.string,
+    away_team_id: PropTypes.number,
     home_score: PropTypes.number,
     away_score: PropTypes.number,
     status: PropTypes.oneOf(['FT', 'HT', 'LIVE', 'UPCOMING']).isRequired,

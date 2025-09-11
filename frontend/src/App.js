@@ -6,10 +6,13 @@ import { ReactQueryDevtools } from 'react-query/devtools';
 // Pages
 import Home from './pages/Home';
 import TestLogin from './pages/TestLogin';
+import Register from './pages/Register';
 import AdminPanel from './components/AdminPanel';
 import Matches from './pages/Matches';
 import Teams from './pages/Teams';
 import Players from './pages/Players';
+import TeamDetail from './components/teams/TeamDetail';
+import PlayerDetail from './components/players/PlayerDetail';
 import AuthStatus from './components/AuthStatus';
 
 // Create a client
@@ -33,7 +36,9 @@ function App() {
         <AuthStatus />
         <div className="App">
           <Routes>
+            {/* Authentication Routes */}
             <Route path="/login" element={!token ? <TestLogin /> : <Navigate to="/" />} />
+            <Route path="/register" element={!token ? <Register /> : <Navigate to="/" />} />
             
             {/* Protected Routes */}
             <Route
@@ -41,21 +46,17 @@ function App() {
               element={token ? <Home /> : <Navigate to="/login" />}
             />
             <Route
-              path="/test-login"
-              element={<TestLogin />}
-            />
-            <Route
               path="/matches/*"
               element={token ? <Matches /> : <Navigate to="/login" />}
             />
-            <Route
-              path="/teams"
-              element={token ? <Teams /> : <Navigate to="/login" />}
-            />
-            <Route
-              path="/players"
-              element={token ? <Players /> : <Navigate to="/login" />}
-            />
+            <Route path="/teams">
+              <Route index element={token ? <Teams /> : <Navigate to="/login" />} />
+              <Route path=":id" element={token ? <TeamDetail /> : <Navigate to="/login" />} />
+            </Route>
+            <Route path="/players">
+              <Route index element={token ? <Players /> : <Navigate to="/login" />} />
+              <Route path=":id" element={token ? <PlayerDetail /> : <Navigate to="/login" />} />
+            </Route>
             <Route
               path="/admin"
               element={
