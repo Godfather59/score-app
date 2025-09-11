@@ -27,6 +27,8 @@ api.interceptors.request.use(
 // API methods
 export const getMatches = () => api.get('/matches');
 export const getMatchById = (id) => api.get(`/matches/${id}`);
+// Get detailed match information including events
+export const getMatchDetails = (id) => api.get(`/matches/${id}`);
 export const getTeams = () => api.get('/teams');
 export const getTeamById = (id) => api.get(`/teams/${id}`);
 export const getPlayers = () => api.get('/players');

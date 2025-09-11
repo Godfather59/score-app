@@ -13,6 +13,7 @@ import Teams from './pages/Teams';
 import Players from './pages/Players';
 import TeamDetail from './components/teams/TeamDetail';
 import PlayerDetail from './components/players/PlayerDetail';
+import MatchDetail from './components/matches/MatchDetail';
 import AuthStatus from './components/AuthStatus';
 
 // Create a client
@@ -45,10 +46,10 @@ function App() {
               path="/"
               element={token ? <Home /> : <Navigate to="/login" />}
             />
-            <Route
-              path="/matches/*"
-              element={token ? <Matches /> : <Navigate to="/login" />}
-            />
+            <Route path="/matches">
+              <Route index element={token ? <Matches /> : <Navigate to="/login" />} />
+              <Route path=":id" element={token ? <MatchDetail /> : <Navigate to="/login" />} />
+            </Route>
             <Route path="/teams">
               <Route index element={token ? <Teams /> : <Navigate to="/login" />} />
               <Route path=":id" element={token ? <TeamDetail /> : <Navigate to="/login" />} />

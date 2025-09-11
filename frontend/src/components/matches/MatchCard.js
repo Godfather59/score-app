@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 const MatchCard = ({ match }) => {
@@ -18,19 +18,22 @@ const MatchCard = ({ match }) => {
   } = match;
   
   const getStatusBadge = () => {
-    const statusUpper = status ? status.toUpperCase() : '';
-    switch (statusUpper) {
-      case 'FT':
-      case 'COMPLETED':
-        return <span className="px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">FT</span>;
-      case 'HT':
-        return <span className="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">HT</span>;
-      case 'LIVE':
-        return <span className="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">LIVE</span>;
-      case 'UPCOMING':
-        return <span className="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">UPCOMING</span>;
-      default:
-        return <span className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">{status || ''}</span>;
+    if (!status) return null;
+    
+    const statusLower = status.toLowerCase();
+    
+    if (statusLower === 'ft' || statusLower === 'completed') {
+      return <span className="px-2 py-1 text-xs font-semibold text-green-800 bg-green-100 rounded-full">FT</span>;
+    } else if (statusLower === 'ht' || statusLower === 'halftime') {
+      return <span className="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">HT</span>;
+    } else if (statusLower === 'live' || statusLower === 'in progress') {
+      return <span className="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">LIVE</span>;
+    } else if (statusLower === 'upcoming' || statusLower === 'scheduled') {
+      return <span className="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">UPCOMING</span>;
+    } else {
+      // Convert first letter to uppercase for display
+      const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+      return <span className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 rounded-full">{displayStatus}</span>;
     }
   };
 
@@ -41,8 +44,17 @@ const MatchCard = ({ match }) => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/matches/${id}`);
+  };
+
   return (
-    <div className="block bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300 mb-4">
+    <div 
+      className="block bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300 mb-4 cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="p-4">
         <div className="text-xs text-gray-500 mb-2">{competition || 'Match'}</div>
         <div className="flex items-center justify-between mb-2">
@@ -96,7 +108,7 @@ MatchCard.propTypes = {
     away_team_id: PropTypes.number,
     home_score: PropTypes.number,
     away_score: PropTypes.number,
-    status: PropTypes.oneOf(['FT', 'HT', 'LIVE', 'UPCOMING']).isRequired,
+    status: PropTypes.string,
     time: PropTypes.string.isRequired,
     competition: PropTypes.string.isRequired,
   }).isRequired,
